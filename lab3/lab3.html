@@ -1,0 +1,123 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>🎉</title>
+		<script src="https://code.jquery.com/jquery-2.2.4.min.js"
+		  integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44="
+		crossorigin="anonymous"></script>
+	</head>
+	<body>
+		<script>
+		let MEETUP_API_KEY = "0596cc35b53632b77417d1a7d3c3f"
+		let keywords = ["python", "javascript", "dart", "ai", "hackathon"]
+		let place = {"country": "us", "state": "ca", "city": "San Francisco"}
+
+		if (MEETUP_API_KEY == "") {
+			document.write("<p style=\"color: red\">")
+			document.write("Meetup API key is missing")
+			document.write("</p>")
+		} else {
+			document.write("Loading meetups...")
+					
+			$.ajax({
+				url: "https://api.meetup.com/2/open_events",
+				type: "GET",
+				data: {
+					"time": nextWeekRange(),
+					"limited_events": "false",
+					"key": MEETUP_API_KEY,
+					"country": place["country"],
+					"text": keywords.join(", "),
+					"state": place["state"],
+					"city": place["city"],
+				}
+			})
+			.done(function(data, textStatus, jqXHR) {
+				displayTimetable(data["results"])
+			})
+			.fail(function(jqXHR, textStatus, errorThrown) {
+				document.write("<p style=\"color: red\">")
+				document.write(jqXHR["responseJSON"]["problem"])
+				document.write("</p>")
+				document.write("<p style=\"color: darkred\">")
+				document.write(jqXHR["responseJSON"]["details"])
+				document.write("</p>"
+			)});	
+		}
+
+		function displayTimetable(events) {	
+			/*
+			Необходимо вывести вывести на каждый день недели список событий в виде даты, заголовка адреса и аннотации. 
+			*/
+			for (let x = 0; x < 7; x++) {
+				let day = weekday(x)
+				document.write("<h1>" + day + "</h1>")
+				document.write("<ul>")
+				
+				let thisDayEvents = events.filter(function (e) {
+					// getDay() returns 0 for Sunday (USA standart)
+					return meetupEventTime(e).getDay() == (x+1 == 7 ? 0 : x+1)
+				})
+				
+				if (thisDayEvents.length == 0) {
+					document.write("<p><i>No events this day</i></p>")
+					document.write("</ul>")
+					continue
+				}
+				
+				for (let e of thisDayEvents) {
+					document.write("<li>")
+					document.write("<h3 style=\"\">")
+					document.write("<a href=\"" + e["event_url"] + "\">" + e["name"] + "</a>")
+					document.write("</h3>")
+					document.write("<h5>" + meetupLocation(e) + "</h5>")
+					document.write("<h5>" + formatDate(meetupEventTime(e)) + "</h5>")
+					document.write("<div style=\"margin-left: 10%\">")
+					document.write(e["description"])
+					document.write("</div>")
+					document.write("<hr/>")
+					document.write("</li>")
+				}		
+				document.write("</ul>")
+			}
+		}
+
+		function nextWeekRange() /* -> String */ {
+			/*
+			Диапазон дат вычисляется автоматически в виде следующей недели относительно времени запуска скрипта.
+			*/
+			let now = new Date().getDay()
+			let nextMondayOffset = 	7 - (now == 0 ? 7 : now) + 1
+			return nextMondayOffset + "d," + (nextMondayOffset + 7) + "d"
+		}
+
+		function meetupEventTime(e) /* even dictionary -> Date */ {
+			let timestamp = e["time"]
+			let utc_offset = e["utc_offset"]
+			// Date() creates a new date using the current timezone
+			let d = new Date(timestamp)
+			// We translate it into a UTC time
+			let utc = d.getTime() + (d.getTimezoneOffset() * 60000);
+			// And apply the given offset to get a remote time
+			return new Date(utc + utc_offset)	
+		}
+
+		function meetupLocation(e) /* even dictionary -> String */ {
+			let venue = e["venue"]
+			if (venue == undefined) {
+				return "(Private location)"
+			}
+			return venue["name"] + " (" + venue["address_1"] + ", " + venue["city"] + ")"
+		}
+
+		function formatDate(d) /* Date -> String */ {
+			return d.toLocaleString();
+		}
+
+		function weekday(x) /* Int -> String */ {
+			return ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"][x]
+		}
+		</script>
+	</body>
+</html>
