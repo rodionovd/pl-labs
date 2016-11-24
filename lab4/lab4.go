@@ -38,7 +38,7 @@ func main() {
 	input <- Token{RECEIVER, "hi there"}
 
 	for i := 0; i < WORKERS; i++ {
-		// Each worker's input's mapped to a previous worker's output, so n-th
+		// Each worker's input is a previous worker's output, so n-th
 		// worker can pass messages to (n+1)-th one
 		output := make(chan Token)
 		go worker(i, input, output)
