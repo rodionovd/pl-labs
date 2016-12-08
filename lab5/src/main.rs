@@ -86,8 +86,8 @@ impl Ray {
         // | x = P1.x + t * (P2.x - P1.x)
         // | y = P1.y + t * (P2.y - P1.y)
         // Отрезок:
-        // | x = A.x * s + B.x * (1-s) = s*(A.x) + B.x - s*(B.x) = s*(A.x - B.x) + B.x
-        // | y = A.y * s + B.y * (1-s) = s*(A.y) + B.y - s*(B.y) = s*(A.y - B.y) + B.y
+        // | x = A.x * s + B.x * (1-s)  =  s*(A.x) + B.x - s*(B.x)  =  s*(A.x - B.x) + B.x
+        // | y = A.y * s + B.y * (1-s)  =  s*(A.y) + B.y - s*(B.y)  =  s*(A.y - B.y) + B.y
         //
         // Для пересечения необходимо наличие решение у системы вида
         // | P1.x + t * (P2.x - P1.x) - s*(A.x - B.x) - B.x = 0
@@ -105,14 +105,14 @@ impl Ray {
         let a01 = -seg.start.x + seg.end.x;
         let a10 = self.other.y - self.start.y;
         let a11 = -seg.start.y + seg.end.y;
-        // вектор b свободных членов:
+        // и вектор b свободных членов:
         // b = | B.x - P1.x |
         //     | B.y - P1.y |
         let b0 = seg.end.x - self.start.x;
         let b1 = seg.end.y - self.start.y;
         // Обозначим за D определитель матрицы M = |M|.
         let d = determinant2(a00, a01, a10, a11);
-        // >>> Если определитель системы равен нолю, значит она не имеет решений. В нашем случае луч не
+        // Если определитель системы равен нолю, значит она не имеет решений. В нашем случае луч не
         // пересекает отрезок.
         if d.abs() < f32::EPSILON {
             return false
